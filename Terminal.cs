@@ -59,8 +59,15 @@ sealed class Terminal : IDisposable
 
 static class Sound
 {
-    public static void Chime(Phase finished)
+    public static void Chime(Phase finished, Terminal terminal)
     {
+        // Console.Beep only makes a sound on Windows; everywhere else ring the terminal bell.
+        if (!OperatingSystem.IsWindows())
+        {
+            terminal.Write("\a");
+            return;
+        }
+
         int[] notes = finished == Phase.Focus ? [659, 784, 1047, 1319] : [784, 659, 784, 1047];
         Task.Run(() =>
         {

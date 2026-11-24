@@ -90,7 +90,7 @@ sealed class Canvas(int width, int height)
     }
 
     // Emits only the cells that differ from the previous frame.
-    public string Render(Canvas? previous)
+    public string Render(Canvas? previous, ColorMode mode)
     {
         var full = previous is null || previous.Width != width || previous.Height != height;
         var sb = new StringBuilder();
@@ -113,19 +113,11 @@ sealed class Canvas(int width, int height)
                     sb.Append($"\e[{y + 1};{x + 1}H");
                 }
 
-                if (chars[i] != ' ')
+                if (chars[i] != ' ' && (colors[i] != color || bolds[i] != bold))
                 {
-                    if (bolds[i] != bold)
-                    {
-                        bold = bolds[i];
-                        sb.Append(bold ? "\e[1m" : "\e[22m");
-                    }
-
-                    if (colors[i] != color)
-                    {
-                        color = colors[i];
-                        sb.Append($"\e[38;2;{colors[i].R};{colors[i].G};{colors[i].B}m");
-                    }
+                    color = colors[i];
+                    bold = bolds[i];
+                    sb.Append(Colors.Sgr(colors[i], bolds[i], mode));
                 }
 
                 sb.Append(chars[i]);

@@ -32,6 +32,7 @@ if (settings.Frame is { } frame)
 using var terminal = new Terminal();
 var session = new Session(settings);
 var muted = settings.Mute;
+var colors = settings.Color ?? Colors.Detect();
 var animation = Stopwatch.StartNew();
 Canvas? previous = null;
 var title = "";
@@ -72,7 +73,7 @@ while (true)
 
     if (session.Tick() && !muted && session.LastFinished is { } finished)
     {
-        Sound.Chime(finished);
+        Sound.Chime(finished, terminal);
     }
 
     var (width, height) = (Console.WindowWidth, Console.WindowHeight);
@@ -80,7 +81,7 @@ while (true)
     {
         var canvas = new Canvas(width, height);
         Ui.Draw(canvas, session, muted, animation.Elapsed.TotalSeconds);
-        terminal.Write(canvas.Render(previous));
+        terminal.Write(canvas.Render(previous, colors));
         previous = canvas;
     }
 

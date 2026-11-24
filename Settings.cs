@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Pomodoro;
 
-sealed record Settings(double Focus, double Short, double Long, int Rounds, bool Mute, (int W, int H)? Frame)
+sealed record Settings(double Focus, double Short, double Long, int Rounds, bool Mute, ColorMode? Color, (int W, int H)? Frame)
 {
     public const string Help = """
         pomodoro - terminal pomodoro timer
@@ -14,6 +14,7 @@ sealed record Settings(double Focus, double Short, double Long, int Rounds, bool
           -l, --long <min>     long break length       (default 15)
           -r, --rounds <n>     focus rounds per cycle  (default 4)
           -m, --mute           start with sound off
+          -c, --color <mode>   truecolor, 256 or 16    (default: detected)
               --frame <WxH>    print one frame as plain text and exit
           -h, --help           show this help
 
@@ -36,6 +37,7 @@ sealed record Settings(double Focus, double Short, double Long, int Rounds, bool
         double longBreak = 15;
         var rounds = 4;
         var mute = false;
+        ColorMode? color = null;
         (int, int)? frame = null;
         var positional = 0;
 
@@ -63,6 +65,10 @@ sealed record Settings(double Focus, double Short, double Long, int Rounds, bool
                 case "-r" or "--rounds":
                     rounds = RoundCount(Value());
                     break;
+                case "-c" or "--color":
+                    var mode = Value();
+                    color = Colors.Parse(mode) ?? throw new ArgumentException($"'{mode}' is not a color mode (truecolor, 256 or 16)");
+                    break;
                 case "--frame":
                     frame = Size(Value());
                     break;
@@ -79,7 +85,7 @@ sealed record Settings(double Focus, double Short, double Long, int Rounds, bool
             }
         }
 
-        return new(focus, shortBreak, longBreak, rounds, mute, frame);
+        return new(focus, shortBreak, longBreak, rounds, mute, color, frame);
     }
 
     static double Minutes(string text) =>
